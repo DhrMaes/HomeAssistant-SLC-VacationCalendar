@@ -5,14 +5,22 @@ from datetime import timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_API_KEY,
-)
+from homeassistant.const import CONF_API_KEY
 from homeassistant.core import DOMAIN, HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .CalendarApi import CalendarHelper, CalendarException, CalendarEntry, CalendarEntryType
-from .const import DOMAIN_METRICS_URL, CONF_FULLNAME, CONF_ELEMENT_ID, DEFAULT_SCAN_INTERVAL
+from .CalendarApi import (
+    CalendarEntry,
+    CalendarEntryType,
+    CalendarException,
+    CalendarHelper,
+)
+from .const import (
+    CONF_ELEMENT_ID,
+    CONF_FULLNAME,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN_METRICS_URL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,9 +48,9 @@ class CalendarCoordinator(DataUpdateCoordinator):
         self.element_id = config_entry.data[CONF_ELEMENT_ID]
 
         # set variables from options.  You need a default here incase options have not been set
-        #self.poll_interval = config_entry.options.get(
+        # self.poll_interval = config_entry.options.get(
         #    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-        #)
+        # )
         self.poll_interval = DEFAULT_SCAN_INTERVAL
 
         # Initialise DataUpdateCoordinator
@@ -67,9 +75,10 @@ class CalendarCoordinator(DataUpdateCoordinator):
         so entities can quickly look up their data.
         """
         try:
-            if not self.api.authenticate():
-                raise CalendarException("Could not authenticate to the calendar api, is you api key valid?")
-            calender_entries = await self.hass.async_add_executor_job(self.api.getEntries, self.fullname)
+            self.api.authenticate_async(self.hass)
+            calender_entries = await self.api.get_entries_async(
+                self.hass, self.fullname
+            )
         except CalendarException as err:
             _LOGGER.error(err)
             raise UpdateFailed(err) from err
@@ -78,7 +87,7 @@ class CalendarCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
         # What is returned here is stored in self.data by the DataUpdateCoordinator
-        return CalendarAPIData(self.api.controller_name, calender_entries)
+        return CalendarAPIData(self.fullname, calender_entries)
 
     def get_calendar_entries_by_fullname(
         self, fullname: str
@@ -87,9 +96,7 @@ class CalendarCoordinator(DataUpdateCoordinator):
         # Called by the binary sensors and sensors to get their updated data from self.data
         try:
             return [
-                entry
-                for entry in self.data.calender_entries
-                if entry.name == fullname
+                entry for entry in self.data.calender_entries if entry.name == fullname
             ]
         except IndexError:
             return None

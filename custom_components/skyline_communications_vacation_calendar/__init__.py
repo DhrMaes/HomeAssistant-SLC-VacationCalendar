@@ -20,12 +20,14 @@ from .coordinator import CalendarCoordinator
 # For your initial PR, limit it to 1 platform.
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
 
+
 @dataclass
 class RuntimeData:
     """Class to hold your data."""
 
     coordinator: DataUpdateCoordinator
     cancel_update_listener: Callable
+
 
 # TODO Update entry annotation
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -69,6 +71,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Return true to denote a successful setup.
     return True
 
+
 async def _async_update_listener(hass: HomeAssistant, config_entry):
     """Handle config options update."""
     # Reload the integration when the options change.
@@ -83,6 +86,7 @@ async def async_remove_config_entry_device(
     # Remove this function if you do not want that option.
     # You may need to do some checks here before allowing devices to be removed.
     return True
+
 
 # TODO Update entry annotation
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:

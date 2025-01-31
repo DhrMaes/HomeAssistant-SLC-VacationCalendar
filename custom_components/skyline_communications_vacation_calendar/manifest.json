@@ -1,0 +1,16 @@
+{
+    "domain": "skyline_communications_vacation_calendar",
+    "name": "Skyline Communications Vacation Calendar",
+    "codeowners": [
+      "@DhrMaes"
+    ],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://www.home-assistant.io/integrations/HomeAssistant-SLC-VacationCalendar",
+    "homekit": {},
+    "iot_class": "cloud_polling",
+    "requirements": [],
+    "ssdp": [],
+    "version": "1.0.1",
+    "zeroconf": []
+  }

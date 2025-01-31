@@ -17,8 +17,7 @@ from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from CalendarApi import CalendarHelper
-
+from .CalendarApi import CalendarHelper
 from .const import CONF_ELEMENT_ID, CONF_FULLNAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +30,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_ELEMENT_ID): str,
     }
 )
+
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input allows us to connect.
@@ -46,9 +46,10 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # )
 
     api = CalendarHelper(data[CONF_API_KEY])
+    await api.authenticate_async(hass)
 
-    if not await api.authenticate():
-        raise InvalidAuth
+    # if not await api.authenticate():
+    #     raise InvalidAuth
 
     # If you cannot connect:
     # throw CannotConnect
@@ -56,7 +57,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # InvalidAuth
 
     # Return info that you want to store in the config entry.
-    return {"title": f"SLC Vacation Calendar - {data[CONF_FULLNAME]}"}
+    return {"title": "SLC Vacation Calendar"}
 
 
 class ConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -72,19 +73,23 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
-                info = await validate_input(self.hass, user_input)
+                api = CalendarHelper(user_input[CONF_API_KEY])
+                await api.authenticate_async(self.hass)
+                # info = await validate_input(self.hass, user_input)
             except InvalidAuth:
                 errors["base"] = "invalid_auth"
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-            
+
             if "base" not in errors:
                 # Validation was successful, so create a unique id for this instance of your integration
                 # and create the config entry.
-                await self.async_set_unique_id(info.get("title"))
+                await self.async_set_unique_id("SLC Vacation Calendar")
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(title=info["title"], data=user_input)
+                return self.async_create_entry(
+                    title="SLC Vacation Calendar", data=user_input
+                )
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
@@ -120,18 +125,25 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                     data={**config_entry.data, **user_input},
                     reason="reconfigure_successful",
                 )
-            
+
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_API_KEY, default=config_entry.data[CONF_API_KEY]): str,
-                    vol.Required(CONF_FULLNAME, default=config_entry.data[CONF_FULLNAME]): str,
-                    vol.Required(CONF_ELEMENT_ID, default=config_entry.data[CONF_ELEMENT_ID]): str,
+                    vol.Required(
+                        CONF_API_KEY, default=config_entry.data[CONF_API_KEY]
+                    ): str,
+                    vol.Required(
+                        CONF_FULLNAME, default=config_entry.data[CONF_FULLNAME]
+                    ): str,
+                    vol.Required(
+                        CONF_ELEMENT_ID, default=config_entry.data[CONF_ELEMENT_ID]
+                    ): str,
                 }
             ),
             errors=errors,
         )
+
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
