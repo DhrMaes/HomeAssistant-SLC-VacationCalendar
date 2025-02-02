@@ -135,5 +135,5 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return the extra state attributes."""
         # Add any additional attributes you want on your sensor.
         attrs = {}
-        attrs["extra_info"] = "Extra Info"
+        attrs["friendly_state"] = "workday" if self.is_workday else "day off"
         return attrs
