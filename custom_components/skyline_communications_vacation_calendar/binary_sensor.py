@@ -3,10 +3,7 @@
 from datetime import datetime
 import logging
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-)
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -56,6 +53,7 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
+        self.is_workday = False
         self.entries = entries
 
     @callback
@@ -66,6 +64,27 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
             self.coordinator.get_calendar_entries_by_fullname(self.coordinator.fullname)
         )
         _LOGGER.debug("User: %s", self.coordinator.fullname)
+
+        # This needs to enumerate to true or false
+        now = datetime.now()
+
+        holiday_types = [
+            CalendarEntryType.Absent,
+            CalendarEntryType.Public_Holiday,
+            CalendarEntryType.Weekend,
+        ]
+
+        matching_entries = [
+            entry
+            for entry in self.entries
+            if entry.event_date <= now <= entry.end_date
+            and entry.category in holiday_types
+        ]
+
+        if matching_entries:
+            self.is_workday = False
+
+        self.is_workday = True
         self.async_write_ha_state()
 
     @property
@@ -102,31 +121,7 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return if the binary sensor is on."""
-        # This needs to enumerate to true or false
-        now = datetime.now()
-
-        holiday_types = [
-            CalendarEntryType.Absent,
-            CalendarEntryType.Public_Holiday,
-            CalendarEntryType.Weekend,
-        ]
-
-        for entry in self.entries:
-            print(
-                f"{entry.id}: {entry.event_date} - {entry.end_date}: {entry.category}"
-            )
-
-        matching_entries = [
-            entry
-            for entry in self.entries
-            if entry.event_date <= now <= entry.end_date
-            and entry.category in holiday_types
-        ]
-
-        if matching_entries:
-            return False
-
-        return True
+        return self.is_workday
 
     @property
     def unique_id(self) -> str:

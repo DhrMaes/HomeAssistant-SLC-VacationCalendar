@@ -4,19 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 from .coordinator import CalendarCoordinator
 
-# TODO List the platforms that you want to support.
 # For your initial PR, limit it to 1 platform.
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
 
@@ -29,14 +26,8 @@ class RuntimeData:
     cancel_update_listener: Callable
 
 
-# TODO Update entry annotation
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up Skyline Communications Vacation Calendar from a config entry."""
-
-    # TODO 1. Create API instance
-    # TODO 2. Validate the API connection (and authentication)
-    # TODO 3. Store an API object for your platforms to access
-    # entry.runtime_data = MyAPI(...)
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -88,7 +79,6 @@ async def async_remove_config_entry_device(
     return True
 
 
-# TODO Update entry annotation
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     # Unload services

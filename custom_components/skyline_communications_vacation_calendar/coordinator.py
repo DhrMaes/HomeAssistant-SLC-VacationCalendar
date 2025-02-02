@@ -6,19 +6,15 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
-from homeassistant.core import DOMAIN, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .CalendarApi import (
-    CalendarEntry,
-    CalendarEntryType,
-    CalendarException,
-    CalendarHelper,
-)
+from .CalendarApi import CalendarEntry, CalendarException, CalendarHelper
 from .const import (
     CONF_ELEMENT_ID,
     CONF_FULLNAME,
     DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
     DOMAIN_METRICS_URL,
 )
 
@@ -66,7 +62,7 @@ class CalendarCoordinator(DataUpdateCoordinator):
         )
 
         # Initialise your api here
-        self.api = CalendarHelper(api_key=self.api_key, element_id=self.element_id)
+        self.api = CalendarHelper(self.api_key)
 
     async def async_update_data(self):
         """Fetch data from API endpoint.
@@ -77,7 +73,7 @@ class CalendarCoordinator(DataUpdateCoordinator):
         try:
             self.api.authenticate_async(self.hass)
             calender_entries = await self.api.get_entries_async(
-                self.hass, self.fullname
+                self.hass, self.fullname, self.element_id
             )
         except CalendarException as err:
             _LOGGER.error(err)

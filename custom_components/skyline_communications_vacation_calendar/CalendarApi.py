@@ -45,7 +45,6 @@ class CalendarHelper:
         """Initialize."""
 
         self.api_key = api_key
-        self.element_id = element_id
 
     def authenticate(self) -> None:
         """Validate if the given api key is valid."""
@@ -62,23 +61,26 @@ class CalendarHelper:
 
         return await hass.async_add_executor_job(self.authenticate)
 
-    def get_entries(self, fullname: str = "") -> list[CalendarEntry]:
+    def get_entries(self, fullname: str, element_id: str) -> list[CalendarEntry]:
         """Get the entries for a given user."""
 
         url = (
             DOMAIN_METRICS_URL
-            + f"/api/custom/calendar?elementId={self.element_id}&fullname={fullname}"
+            + f"/api/custom/calendar?elementId={element_id}&fullname={fullname}"
         )
         headers = {"Authorization": "Bearer " + self.api_key}
         response = requests.get(url=url, verify=True, headers=headers)
 
         entries: list[CalendarEntry] = []
         jsonResponse = response.json()
+        if response.status_code >= 400:
+            raise CalendarException(jsonResponse["errors"][0]["detail"])
+
         for temp in jsonResponse:
             entry = CalendarEntry(
                 id=temp["ID"],
                 name=temp["Name"],
-                category=temp["Category"],
+                category=CalendarEntryType(temp["Category"]),
                 event_date=datetime.strptime(temp["EventDate"], "%Y-%m-%dT%H:%M:%S"),
                 end_date=datetime.strptime(temp["EndDate"], "%Y-%m-%dT%H:%M:%S"),
                 description=temp["Description"],
@@ -91,14 +93,14 @@ class CalendarHelper:
             )
             entries.append(entry)
 
-        if response.status_code >= 200 and response.status_code <= 299:
-            return entries
-        raise Exception(jsonResponse["errors"][0]["detail"])
+        return entries
 
-    async def get_entries_async(self, hass: HomeAssistant, fullname: str):
+    async def get_entries_async(
+        self, hass: HomeAssistant, fullname: str, element_id: str
+    ):
         """Get the entries for a given user async."""
 
-        return await hass.async_add_executor_job(self.get_entries, fullname)
+        return await hass.async_add_executor_job(self.get_entries, fullname, element_id)
 
 
 class CalendarException(Exception):
