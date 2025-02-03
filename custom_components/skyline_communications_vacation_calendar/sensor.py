@@ -3,7 +3,7 @@
 from datetime import datetime
 import logging
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -37,23 +37,29 @@ async def async_setup_entry(
     #    if device.device_type == DeviceType.DOOR_SENSOR
     # ]
 
-    binary_sensors = [
-        WorkDayBinarySensor(coordinator, coordinator.data.calender_entries)
-    ]
+    sensors = [DaySensor(coordinator, coordinator.data.calender_entries)]
 
     # Create the binary sensors.
-    async_add_entities(binary_sensors)
+    async_add_entities(sensors)
 
 
-class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class DaySensor(CoordinatorEntity, SensorEntity):
     """Implementation of a sensor."""
+
+    options = [
+        "Workday",
+        CalendarEntryType.Absent.name,
+        CalendarEntryType.WfH.name,
+        CalendarEntryType.Public_Holiday.name,
+        CalendarEntryType.Weekend.name,
+    ]
 
     def __init__(
         self, coordinator: CalendarCoordinator, entries: list[CalendarEntry]
     ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
-        self.is_workday = False
+        self.day_type = self.options[0]
         self.entries = entries
 
     @callback
@@ -65,11 +71,14 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         )
         _LOGGER.debug("User: %s", self.coordinator.fullname)
 
+        self._attr_options = self.options
+
         # This needs to enumerate to true or false
         now = datetime.now()
 
-        holiday_types = [
+        day_types = [
             CalendarEntryType.Absent,
+            CalendarEntryType.WfH,
             CalendarEntryType.Public_Holiday,
             CalendarEntryType.Weekend,
         ]
@@ -77,22 +86,20 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         matching_entries = [
             entry
             for entry in self.entries
-            if entry.event_date <= now <= entry.end_date
-            and entry.category in holiday_types
+            if entry.event_date <= now <= entry.end_date and entry.category in day_types
         ]
 
         if matching_entries:
-            self.is_workday = False
-
-        self.is_workday = True
+            self.day_type = matching_entries[0].category.name
+        else:
+            self.day_type = "Workday"
         self.async_write_ha_state()
 
     @property
     def device_class(self) -> str:
         """Return device class."""
-        # https://developers.home-assistant.io/docs/core/entity/binary-sensor#available-device-classes
-        # return BinarySensorDeviceClass.DOOR
-        return ""
+        # https://developers.home-assistant.io/docs/core/entity/sensor#available-device-classes
+        return SensorDeviceClass.ENUM
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -101,9 +108,9 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         # If your device is created elsewhere, you can just specify the indentifiers parameter.
         # If your device connects via another device, add via_device parameter with the indentifiers of that device.
         return DeviceInfo(
-            name=f"Workday Binary Sensor {self.coordinator.fullname}",
+            name=f"Workday Sensor {self.coordinator.fullname}",
             manufacturer="DhrMaes",
-            model="Workday Binary Sensor 1.0.1",
+            model="Workday Sensor 1.0.1",
             sw_version="1.0.1",
             identifiers={
                 (
@@ -116,12 +123,20 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def name(self) -> str:
         """Return the name of the sensor."""
-        return f"Workday binary sensor for {self.coordinator.fullname}"
+        return f"Workday sensor for {self.coordinator.fullname}"
 
     @property
-    def is_on(self) -> bool | None:
-        """Return if the binary sensor is on."""
-        return self.is_workday
+    def native_value(self) -> str:
+        """Return the state of the entity."""
+        # Using native value and native unit of measurement, allows you to change units
+        # in Lovelace and HA will automatically calculate the correct value.
+        return self.day_type
+
+    @property
+    def state_class(self) -> str | None:
+        """Return state class."""
+        # https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes
+        return None
 
     @property
     def unique_id(self) -> str:
@@ -135,5 +150,7 @@ class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return the extra state attributes."""
         # Add any additional attributes you want on your sensor.
         attrs = {}
-        attrs["friendly_state"] = "workday" if self.is_workday else "day off"
+        attrs["integer_state"] = (
+            -1 if self.day_type == "Workday" else CalendarEntryType(self.day_type).value
+        )
         return attrs

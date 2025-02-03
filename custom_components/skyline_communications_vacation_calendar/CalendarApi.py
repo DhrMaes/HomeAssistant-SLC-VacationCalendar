@@ -41,7 +41,7 @@ class CalendarEntry:
 class CalendarHelper:
     """Wrapper around the calendar api."""
 
-    def __init__(self, api_key: str = "", element_id: str = "") -> None:
+    def __init__(self, api_key: str = "") -> None:
         """Initialize."""
 
         self.api_key = api_key

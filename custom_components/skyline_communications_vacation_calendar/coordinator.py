@@ -71,7 +71,7 @@ class CalendarCoordinator(DataUpdateCoordinator):
         so entities can quickly look up their data.
         """
         try:
-            self.api.authenticate_async(self.hass)
+            await self.api.authenticate_async(self.hass)
             calender_entries = await self.api.get_entries_async(
                 self.hass, self.fullname, self.element_id
             )

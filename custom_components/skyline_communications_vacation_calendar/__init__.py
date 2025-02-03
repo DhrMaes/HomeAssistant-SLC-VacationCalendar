@@ -15,7 +15,7 @@ from .const import DOMAIN
 from .coordinator import CalendarCoordinator
 
 # For your initial PR, limit it to 1 platform.
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 
 @dataclass
@@ -54,10 +54,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Setup platforms (based on the list of entity types in PLATFORMS defined above)
     # This calls the async_setup method in each of your entity type files.
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, platform)
-        )
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+    # for platform in PLATFORMS:
+    #     hass.async_create_task(
+    #         hass.config_entries.async_forward_entry_setup(config_entry, platform)
+    #     )
 
     # Return true to denote a successful setup.
     return True
