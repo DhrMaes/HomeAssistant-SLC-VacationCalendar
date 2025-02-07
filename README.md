@@ -42,6 +42,43 @@ For now this will create 1 entity per integration (with more to come). It's a bi
 
 ![Workday Sensor Example](./Documentation/Images/Workday_Sensor_Example.png)
 
+
+### Automation 
+
+For example you could create an automation that will warm up your car when your alarm goes off in the morning but only if it's a working day and it's not a work from home day.
+
+```yaml
+description: "Automatic Car Warm-Up"
+mode: single
+triggers:
+  - trigger: time
+    at: sensor.dhrmaes_oneplus_nord_2t_5g_next_alarm
+conditions:
+  - condition: state
+    entity_id: binary_sensor.workday_binary_sensor_for_arne_maes
+    state: "on"
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: sensor.workday_sensor_for_arne_maes
+        state: WfH
+actions:
+  - type: turn_on
+    device_id: 1b97cda7c171f9bb89ed3b4eb4b72eb6
+    entity_id: 4d08c1c41fb49e6a990a25e65d2166c7
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 15
+      seconds: 0
+  - type: turn_off
+    device_id: 1b97cda7c171f9bb89ed3b4eb4b72eb6
+    entity_id: 4d08c1c41fb49e6a990a25e65d2166c7
+    domain: switch
+```
+
+![Automation Example](./Documentation/Images/Example_Automation.png)
+
 ## Support
 
 For additional help, reach out to [arne.maes@skyline.be](mailto:arne.maes@skyline.be)
