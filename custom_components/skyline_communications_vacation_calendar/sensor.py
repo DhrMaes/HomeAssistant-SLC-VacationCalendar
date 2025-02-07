@@ -15,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .CalendarApi import CalendarEntry, CalendarEntryType
-from .const import CONF_ELEMENT_ID, CONF_FULLNAME, DOMAIN
+from .const import DOMAIN
 from .coordinator import CalendarCoordinator
 
 _LOGGER = logging.getLogger(__name__)
