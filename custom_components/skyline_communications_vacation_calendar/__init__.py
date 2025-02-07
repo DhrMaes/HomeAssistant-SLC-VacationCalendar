@@ -56,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # This calls the async_setup method in each of your entity type files.
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     # for platform in PLATFORMS:
-    #     hass.async_create_task(
+    #     await hass.async_create_task(
     #         hass.config_entries.async_forward_entry_setup(config_entry, platform)
     #     )
 

@@ -3,7 +3,11 @@
 from datetime import datetime
 import logging
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -11,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .CalendarApi import CalendarEntry, CalendarEntryType
-from .const import DOMAIN
+from .const import CONF_ELEMENT_ID, CONF_FULLNAME, DOMAIN
 from .coordinator import CalendarCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,6 +27,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Set up the Binary Sensors."""
+
     # This gets the data update coordinator from hass.data as specified in your __init__.py
     coordinator: CalendarCoordinator = hass.data[DOMAIN][
         config_entry.entry_id
@@ -37,7 +42,7 @@ async def async_setup_entry(
     #    if device.device_type == DeviceType.DOOR_SENSOR
     # ]
 
-    sensors = [DaySensor(coordinator, coordinator.data.calender_entries)]
+    sensors = [DaySensor(coordinator, coordinator.entries)]
 
     # Create the binary sensors.
     async_add_entities(sensors)
@@ -54,46 +59,51 @@ class DaySensor(CoordinatorEntity, SensorEntity):
         CalendarEntryType.Weekend.name,
     ]
 
+    calendar_options = [
+        CalendarEntryType.Absent,
+        CalendarEntryType.WfH,
+        CalendarEntryType.Public_Holiday,
+        CalendarEntryType.Weekend,
+    ]
+
+    _attr_native_unit_of_measurement = None
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
     def __init__(
         self, coordinator: CalendarCoordinator, entries: list[CalendarEntry]
     ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
-        self.day_type = self.options[0]
-        self.entries = entries
+        self._attr_options = self.options
+        self.calculate_day_type(entries)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Update sensor with latest data from coordinator."""
         # This method is called by your DataUpdateCoordinator when a successful update runs.
-        self.entries: list[CalendarEntry] = (
-            self.coordinator.get_calendar_entries_by_fullname(self.coordinator.fullname)
-        )
-        _LOGGER.debug("User: %s", self.coordinator.fullname)
+        coordinator: CalendarCoordinator = self.coordinator
+        _LOGGER.debug("User: %s", coordinator.fullname)
+        self.calculate_day_type(coordinator.entries)
+        self.async_write_ha_state()
 
-        self._attr_options = self.options
+    def calculate_day_type(self, entries: list[CalendarEntry]):
+        """Caculate the type of day based on the latest vacation entries."""
 
         # This needs to enumerate to true or false
         now = datetime.now()
 
-        day_types = [
-            CalendarEntryType.Absent,
-            CalendarEntryType.WfH,
-            CalendarEntryType.Public_Holiday,
-            CalendarEntryType.Weekend,
-        ]
-
         matching_entries = [
             entry
-            for entry in self.entries
-            if entry.event_date <= now <= entry.end_date and entry.category in day_types
+            for entry in entries
+            if entry.event_date <= now <= entry.end_date
+            and entry.category in self.calendar_options
         ]
 
         if matching_entries:
             self.day_type = matching_entries[0].category.name
         else:
             self.day_type = "Workday"
-        self.async_write_ha_state()
 
     @property
     def device_class(self) -> str:
@@ -133,6 +143,11 @@ class DaySensor(CoordinatorEntity, SensorEntity):
         return self.day_type
 
     @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return unit of temperature."""
+        return None
+
+    @property
     def state_class(self) -> str | None:
         """Return state class."""
         # https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes
@@ -150,7 +165,14 @@ class DaySensor(CoordinatorEntity, SensorEntity):
         """Return the extra state attributes."""
         # Add any additional attributes you want on your sensor.
         attrs = {}
-        attrs["integer_state"] = (
-            -1 if self.day_type == "Workday" else CalendarEntryType(self.day_type).value
-        )
+
+        if self.day_type is None:
+            attrs["integer_state"] = None
+        else:
+            attrs["integer_state"] = (
+                -1
+                if self.day_type == "Workday"
+                else CalendarEntryType[self.day_type].value
+            )
+
         return attrs

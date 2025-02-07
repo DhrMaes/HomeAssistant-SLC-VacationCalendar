@@ -97,7 +97,7 @@ class CalendarHelper:
 
     async def get_entries_async(
         self, hass: HomeAssistant, fullname: str, element_id: str
-    ):
+    ) -> list[CalendarEntry]:
         """Get the entries for a given user async."""
 
         return await hass.async_add_executor_job(self.get_entries, fullname, element_id)

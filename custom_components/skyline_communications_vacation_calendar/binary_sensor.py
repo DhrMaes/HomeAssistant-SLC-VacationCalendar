@@ -37,9 +37,7 @@ async def async_setup_entry(
     #    if device.device_type == DeviceType.DOOR_SENSOR
     # ]
 
-    binary_sensors = [
-        WorkDayBinarySensor(coordinator, coordinator.data.calender_entries)
-    ]
+    binary_sensors = [WorkDayBinarySensor(coordinator, coordinator.entries)]
 
     # Create the binary sensors.
     async_add_entities(binary_sensors)
@@ -48,51 +46,53 @@ async def async_setup_entry(
 class WorkDayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Implementation of a sensor."""
 
+    holiday_types = [
+        CalendarEntryType.Absent,
+        CalendarEntryType.Public_Holiday,
+        CalendarEntryType.Weekend,
+    ]
+
     def __init__(
         self, coordinator: CalendarCoordinator, entries: list[CalendarEntry]
     ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
-        self.is_workday = False
-        self.entries = entries
+        self.calculate_workday(entries)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Update sensor with latest data from coordinator."""
         # This method is called by your DataUpdateCoordinator when a successful update runs.
-        self.entries: list[CalendarEntry] = (
-            self.coordinator.get_calendar_entries_by_fullname(self.coordinator.fullname)
-        )
+
+        coordinator: CalendarCoordinator = self.coordinator
         _LOGGER.debug("User: %s", self.coordinator.fullname)
+        self.calculate_workday(coordinator.entries)
+        self.async_write_ha_state()
+
+    def calculate_workday(self, entries: list[CalendarEntry]):
+        """Calculate if today is a work day or not."""
 
         # This needs to enumerate to true or false
         now = datetime.now()
 
-        holiday_types = [
-            CalendarEntryType.Absent,
-            CalendarEntryType.Public_Holiday,
-            CalendarEntryType.Weekend,
-        ]
-
         matching_entries = [
             entry
-            for entry in self.entries
+            for entry in entries
             if entry.event_date <= now <= entry.end_date
-            and entry.category in holiday_types
+            and entry.category in self.holiday_types
         ]
 
         if matching_entries:
             self.is_workday = False
-
-        self.is_workday = True
-        self.async_write_ha_state()
+        else:
+            self.is_workday = True
 
     @property
-    def device_class(self) -> str:
+    def device_class(self) -> str | None:
         """Return device class."""
         # https://developers.home-assistant.io/docs/core/entity/binary-sensor#available-device-classes
         # return BinarySensorDeviceClass.DOOR
-        return ""
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:

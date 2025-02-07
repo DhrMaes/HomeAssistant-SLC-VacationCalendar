@@ -21,18 +21,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
-class CalendarAPIData:
-    """Class to hold api data."""
-
-    controller_name: str
-    calender_entries: list[CalendarEntry]
-
-
 class CalendarCoordinator(DataUpdateCoordinator):
     """My example coordinator."""
 
-    data: CalendarAPIData
+    entries: list[CalendarEntry]
+    counter: int = 0
 
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize coordinator."""
@@ -58,7 +51,7 @@ class CalendarCoordinator(DataUpdateCoordinator):
             update_method=self.async_update_data,
             # Polling interval. Will only be polled if there are subscribers.
             # Using config option here but you can just use a value.
-            update_interval=timedelta(seconds=self.poll_interval),
+            update_interval=timedelta(seconds=60),
         )
 
         # Initialise your api here
@@ -70,29 +63,24 @@ class CalendarCoordinator(DataUpdateCoordinator):
         This is the place to pre-process the data to lookup tables
         so entities can quickly look up their data.
         """
-        try:
-            await self.api.authenticate_async(self.hass)
-            calender_entries = await self.api.get_entries_async(
-                self.hass, self.fullname, self.element_id
-            )
-        except CalendarException as err:
-            _LOGGER.error(err)
-            raise UpdateFailed(err) from err
-        except Exception as err:
-            # This will show entities as unavailable by raising UpdateFailed exception
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+        self.counter = self.counter + 1
+        if self.counter == 1:
+            try:
+                await self.api.authenticate_async(self.hass)
+                self.entries = await self.api.get_entries_async(
+                    self.hass, self.fullname, self.element_id
+                )
+
+            except CalendarException as err:
+                _LOGGER.error(err)
+                raise UpdateFailed(err) from err
+            except Exception as err:
+                # This will show entities as unavailable by raising UpdateFailed exception
+                raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+        if self.counter >= 60:
+            self.counter = 0
 
         # What is returned here is stored in self.data by the DataUpdateCoordinator
-        return CalendarAPIData(self.fullname, calender_entries)
-
-    def get_calendar_entries_by_fullname(
-        self, fullname: str
-    ) -> list[CalendarEntry] | None:
-        """Return calendar entries by fullname."""
-        # Called by the binary sensors and sensors to get their updated data from self.data
-        try:
-            return [
-                entry for entry in self.data.calender_entries if entry.name == fullname
-            ]
-        except IndexError:
-            return None
+        return self.entries
