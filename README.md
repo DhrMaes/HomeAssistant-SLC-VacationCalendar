@@ -1,4 +1,4 @@
-# Home Assistant RecycleApp Integration
+# Home Assistant Skyline Vacation Calendar Integration
 
 Home Assistant Integration to sync your Skyline Communications Vacation Calendar with your HA. 
 
