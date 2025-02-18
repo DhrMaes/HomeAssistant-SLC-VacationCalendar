@@ -4,7 +4,10 @@ Home Assistant Integration to sync your Skyline Communications Vacation Calendar
 
 ## Installation
 
-For now there is no easy way of installing. You can for example 
+### HACS
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=DhrMaes&repository=HomeAssistant-SLC-VacationCalendar&category=integration)
+ 
+### Manual
 * Install the File Editor Add-On:
 * In the File Editor create a **custom_components** folder.
 * In the custom_components folder create a **skyline_communications_vacation_calendar** folder
