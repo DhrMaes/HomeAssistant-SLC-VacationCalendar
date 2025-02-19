@@ -9,7 +9,8 @@
   "documentation": "https://www.home-assistant.io/integrations/HomeAssistant-SLC-VacationCalendar",
   "homekit": {},
   "iot_class": "cloud_polling",
-  "requirements": [],
+  "issue_tracker": "https://github.com/DhrMaes/HomeAssistant-SLC-VacationCalendar/issues",
+  "requirements": ["requests"],
   "ssdp": [],
   "version": "1.0.1",
   "zeroconf": []
