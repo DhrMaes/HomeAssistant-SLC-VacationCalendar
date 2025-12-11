@@ -1,0 +1,23 @@
+{
+  "name": "Skyline Vacation Calendar Integration",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "homeassistant",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [8123],
+  "postCreateCommand": "pip3 install -r /workspace/requirements.txt",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "python.analysis.extraPaths": [
+          "/usr/local/lib/python3.12/site-packages"
+        ],
+        "python.analysis.typeCheckingMode": "basic"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}

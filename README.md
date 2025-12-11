@@ -1,5 +1,6 @@
 # Home Assistant Skyline Vacation Calendar Integration
 
+<img src="./Documentation/Logo/logo.png" width="128" height="128"> 
 Home Assistant Integration to sync your Skyline Communications Vacation Calendar with your HA. 
 
 ## Installation
@@ -41,11 +42,21 @@ Home Assistant Integration to sync your Skyline Communications Vacation Calendar
 
 ## Usage
 
-For now this will create 1 entity per integration (with more to come). It's a binary sensor indicating of today is a workday for the user or not. You could then the sensor in automations, for instance heat the car when my alarm goes of on a workday.
+The following entities will be created: 
+- Binary sensor: indicating of today is a workday for the user or not. You could then the sensor in automations, for instance heat the car when my alarm goes of on a workday.
 
-![Workday Sensor Example](./Documentation/Images/Workday_Sensor_Example.png)
+  ![Workday_Binary_Sensor Example](./Documentation/Images/Workday_Binary_Sensor_Example.png)
+- Text sensor: indicating the current day as one of the following options: "Workday, WfH, Absence, Public_Holiday, Weekend"
 
+  ![Workday Text_Sensor Example](./Documentation/Images/Workday_Text_Sensor_Example.png)
+- Calendar: a full blown calendar with all skyline events
 
+  ![Calendar Example_1](./Documentation/Images/Calendar_Example_1.png)
+  ![Calendar Example_2](./Documentation/Images/Calendar_Example_2.png)
+
+### Options
+There are a couple of options available on this integrations for how you would like to configure your calendars:
+ ![Options Example](./Documentation/Images/Options_Example.png)
 ### Automation 
 
 For example you could create an automation that will warm up your car when your alarm goes off in the morning but only if it's a working day and it's not a work from home day.

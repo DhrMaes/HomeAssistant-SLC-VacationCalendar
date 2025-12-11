@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "API Key",
+          "full_name": "Full name",
+          "element_id": "Element ID"
+        }
+      },
+      "reconfigure": {
+        "data": {
+          "api_key": "API Key",
+          "full_name": "Full name",
+          "element_id": "Element ID"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "calendar_types": "Calendar categories",
+          "calendar_entity_foreach_type": "Calendar entity per category"
+        },
+        "data_description": {
+          "calendar_types": "Calendar categories you want to show.",
+          "calendar_entity_foreach_type": "Whether you want to create a separate calendar entity for each category."
+        },
+        "title": "Calendar Configuration"
+      }
+    }
+  }
+}

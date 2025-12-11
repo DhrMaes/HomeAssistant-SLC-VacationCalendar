@@ -1,22 +1,43 @@
 {
-    "config": {
-      "step": {
-        "user": {
-          "data": {
-            "host": "[%key:common::config_flow::data::host%]",
-            "username": "[%key:common::config_flow::data::username%]",
-            "password": "[%key:common::config_flow::data::password%]"
-          }
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "full_name": "Full name",
+          "element_id": "Element ID"
         }
       },
-      "error": {
-        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-        "unknown": "[%key:common::config_flow::error::unknown%]"
-      },
-      "abort": {
-        "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "reconfigure": {
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "full_name": "Full name",
+          "element_id": "Element ID"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "calendar_types": "Calendar categories",
+          "calendar_entity_foreach_type": "Calendar entity per category"
+        },
+        "data_description": {
+          "calendar_types": "Calendar categories you want to show.",
+          "calendar_entity_foreach_type": "Whether you want to create a separate calendar entity for each category."
+        },
+        "title": "Calendar Configuration"
       }
     }
   }
-  
+}

@@ -1,4 +1,4 @@
-"""Interfaces with the Integration 101 Template api sensors."""
+"""Skyline Communications Vacation Calendar."""
 
 from datetime import datetime
 import logging
@@ -10,13 +10,19 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .CalendarApi import CalendarEntry, CalendarEntryType
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    DOMAIN_METRICS_URL,
+    MANUFACTURER_NAME,
+    MODEL_NAME,
+    SERVICE_NAME,
+)
 from .coordinator import CalendarCoordinator
+from .skyline.calendar_api import CalendarEntry, CalendarEntryType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,20 +33,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Set up the Binary Sensors."""
-
-    # This gets the data update coordinator from hass.data as specified in your __init__.py
-    coordinator: CalendarCoordinator = hass.data[DOMAIN][
-        config_entry.entry_id
-    ].coordinator
-
-    # Enumerate all the binary sensors in your data value from your DataUpdateCoordinator and add an instance of your binary sensor class
-    # to a list for each one.
-    # This maybe different in your specific case, depending on how your data is structured
-    # binary_sensors = [
-    #    ExampleBinarySensor(coordinator, device)
-    #    for device in coordinator.data.devices
-    #    if device.device_type == DeviceType.DOOR_SENSOR
-    # ]
+    coordinator: CalendarCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     sensors = [DaySensor(coordinator, coordinator.entries)]
 
@@ -69,6 +62,7 @@ class DaySensor(CoordinatorEntity, SensorEntity):
     _attr_native_unit_of_measurement = None
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_state_class = SensorStateClass.MEASUREMENT
+    coordinator: CalendarCoordinator
 
     def __init__(
         self, coordinator: CalendarCoordinator, entries: list[CalendarEntry]
@@ -82,16 +76,15 @@ class DaySensor(CoordinatorEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Update sensor with latest data from coordinator."""
         # This method is called by your DataUpdateCoordinator when a successful update runs.
-        coordinator: CalendarCoordinator = self.coordinator
-        _LOGGER.debug("User: %s", coordinator.fullname)
-        self.calculate_day_type(coordinator.entries)
+        _LOGGER.debug("User: %s", self.coordinator.fullname)
+        self.calculate_day_type(self.coordinator.entries)
         self.async_write_ha_state()
 
     def calculate_day_type(self, entries: list[CalendarEntry]):
         """Caculate the type of day based on the latest vacation entries."""
 
         # This needs to enumerate to true or false
-        now = datetime.now()
+        now = datetime.now().astimezone()
 
         matching_entries = [
             entry
@@ -114,20 +107,19 @@ class DaySensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Identifiers are what group entities into the same device.
-        # If your device is created elsewhere, you can just specify the indentifiers parameter.
-        # If your device connects via another device, add via_device parameter with the indentifiers of that device.
         return DeviceInfo(
-            name=f"Workday Sensor {self.coordinator.fullname}",
-            manufacturer="DhrMaes",
-            model="Workday Sensor 1.0.1",
-            sw_version="1.0.1",
+            entry_type=DeviceEntryType.SERVICE,
+            name=SERVICE_NAME,
+            manufacturer=MANUFACTURER_NAME,
+            model=MODEL_NAME,
+            sw_version=None,
             identifiers={
                 (
                     DOMAIN,
                     f"slc-vaction-calendar-{self.coordinator.fullname}",
                 )
             },
+            configuration_url=DOMAIN_METRICS_URL,
         )
 
     @property

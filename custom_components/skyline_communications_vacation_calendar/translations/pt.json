@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "Chave API",
+          "full_name": "Nome completo",
+          "element_id": "ID do Elemento"
+        }
+      },
+      "reconfigure": {
+        "data": {
+          "api_key": "Chave API",
+          "full_name": "Nome completo",
+          "element_id": "ID do Elemento"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "calendar_types": "Categorias do calendário",
+          "calendar_entity_foreach_type": "Entidade de calendário por categoria"
+        },
+        "data_description": {
+          "calendar_types": "Categorias do calendário que deseja mostrar.",
+          "calendar_entity_foreach_type": "Se deseja criar uma entidade de calendário separada para cada categoria."
+        },
+        "title": "Configuração do Calendário"
+      }
+    }
+  }
+}

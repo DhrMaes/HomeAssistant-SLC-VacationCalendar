@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_key": "API-sleutel",
+          "full_name": "Volledige naam",
+          "element_id": "Element ID"
+        }
+      },
+      "reconfigure": {
+        "data": {
+          "api_key": "API-sleutel",
+          "full_name": "Volledige naam",
+          "element_id": "Element ID"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "calendar_types": "Kalendercategorieën",
+          "calendar_entity_foreach_type": "Kalenderentiteit per categorie"
+        },
+        "data_description": {
+          "calendar_types": "Kalendercategorieën die u wilt weergeven.",
+          "calendar_entity_foreach_type": "Of u voor elke categorie een aparte kalenderentiteit wilt maken."
+        },
+        "title": "Kalender Configuratie"
+      }
+    }
+  }
+}

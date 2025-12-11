@@ -3,11 +3,11 @@ from datetime import datetime
 from enum import Enum
 
 import requests
-import requests.packages
 
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN_METRICS_URL
+from ..const import DOMAIN_METRICS_URL
 
 
 class CalendarEntryType(Enum):
@@ -22,6 +22,44 @@ class CalendarEntryType(Enum):
     Weekend = 6
     Release = 7
     Seal = 8
+
+
+def to_calendar_entry_types(strings: list[str]) -> list[CalendarEntryType]:
+    """Converts a list of strings with enum values to a list of enum members."""
+    result = []
+    for s in strings:
+        try:
+            value = int(s)
+            result.append(CalendarEntryType(value))
+        except (ValueError, KeyError):
+            # ValueError → string not an integer
+            # KeyError → integer not a valid enum value
+            pass
+    return result
+
+
+@staticmethod
+def get_calendar_type_display_value(type: CalendarEntryType):
+    """Converts CalendarEntryType to a display string."""
+    match type:
+        case CalendarEntryType.Absent:
+            return "Absent"
+        case CalendarEntryType.WfH:
+            return "Work from Home"
+        case CalendarEntryType.RT_Rotation:
+            return "RT Rotation"
+        case CalendarEntryType.Support_Rotation:
+            return "Support Rotation"
+        case CalendarEntryType.Other:
+            return "Other"
+        case CalendarEntryType.Public_Holiday:
+            return "Public Holiday"
+        case CalendarEntryType.Weekend:
+            return "Weekend"
+        case CalendarEntryType.Release:
+            return "Release"
+        case CalendarEntryType.Seal:
+            return "Seal"
 
 
 @dataclass
@@ -81,15 +119,19 @@ class CalendarHelper:
                 id=temp["ID"],
                 name=temp["Name"],
                 category=CalendarEntryType(temp["Category"]),
-                event_date=datetime.strptime(temp["EventDate"], "%Y-%m-%dT%H:%M:%S"),
-                end_date=datetime.strptime(temp["EndDate"], "%Y-%m-%dT%H:%M:%S"),
+                event_date=datetime.strptime(
+                    temp["EventDate"], "%Y-%m-%dT%H:%M:%S"
+                ).replace(tzinfo=dt_util.get_default_time_zone()),
+                end_date=datetime.strptime(
+                    temp["EndDate"], "%Y-%m-%dT%H:%M:%S"
+                ).replace(tzinfo=dt_util.get_default_time_zone()),
                 description=temp["Description"],
                 original_event_date=datetime.strptime(
                     temp["OriginalEventDate"], "%Y-%m-%dT%H:%M:%S"
-                ),
+                ).replace(tzinfo=dt_util.get_default_time_zone()),
                 originale_end_date=datetime.strptime(
                     temp["OriginalEndDate"], "%Y-%m-%dT%H:%M:%S"
-                ),
+                ).replace(tzinfo=dt_util.get_default_time_zone()),
             )
             entries.append(entry)
 

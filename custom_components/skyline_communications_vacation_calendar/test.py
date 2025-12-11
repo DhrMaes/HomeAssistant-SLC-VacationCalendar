@@ -1,5 +1,5 @@
 from datetime import datetime
-from CalendarApi import CalendarHelper, CalendarEntryType
+from skyline_communications_vacation_calendar.skyline.calendar_api import CalendarHelper, CalendarEntryType
 
 helper = CalendarHelper("uhhFw2zWsM2OSAwOpdKcbmPFddVhMHbSUaKSm/fTYRA=")
 entries = helper.get_entries("Frederic Anthierens", "477/147")

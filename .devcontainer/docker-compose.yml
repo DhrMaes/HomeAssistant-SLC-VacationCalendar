@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: ha_dev
+    volumes:
+      - ./..:/workspace:cached
+      - ha_config:/config
+      - ./../custom_components/skyline_communications_vacation_calendar:/config/custom_components/skyline_communications_vacation_calendar
+    ports:
+      - "8123:8123"
+    environment:
+      - TZ=UTC
+    command: >
+      python -m homeassistant --config /config
+volumes:
+  ha_config:

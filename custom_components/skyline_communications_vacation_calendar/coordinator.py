@@ -8,7 +8,6 @@ from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .CalendarApi import CalendarEntry, CalendarException, CalendarHelper
 from .const import (
     CONF_ELEMENT_ID,
     CONF_FULLNAME,
@@ -16,6 +15,7 @@ from .const import (
     DOMAIN,
     DOMAIN_METRICS_URL,
 )
+from .skyline.calendar_api import CalendarEntry, CalendarException, CalendarHelper
 
 _LOGGER = logging.getLogger(__name__)
 
